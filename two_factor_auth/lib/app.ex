@@ -5,7 +5,7 @@ defmodule App do
     :ok = :syn.add_node_to_scopes([:cached_login, :persistent_login])
 
     children = [CachedLogin, PersistentLogin]
-    opts = {strategy: :one_for_one, name: App.Supervisor}
+    opts = [strategy: :one_for_one, name: App.Supervisor]
 
     Supervisor.start_link(children, opts)
   end
