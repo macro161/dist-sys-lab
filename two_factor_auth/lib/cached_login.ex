@@ -1,10 +1,12 @@
 defmodule CachedLogin do
   use GenServer
+  require Logger
 
   # Interface
 
   def login(username, device_id) do
     devices = GenServer.call(__MODULE__, :device_list)
+    Logger.debug("Saved devices #{inspect(devices)}")
     stored_device_id = Map.get(devices, username)
 
     case stored_device_id do
@@ -21,6 +23,7 @@ defmodule CachedLogin do
   # Callbacks
 
   def init(_) do
+    Logger.debug("Init CachedLogin")
     :ok = :syn.join(:cached_login, :node, self())
     {:ok, %{}}
   end
@@ -38,11 +41,12 @@ defmodule CachedLogin do
   def handle_cast({:store_device_id, username, device_id}, state) do
     members = for {pid, _} <- :syn.members(:cached_login, :node), do: pid
 
-    if map_size(state) > 2 do
+    if map_size(state) > 1 do
       members |> Enum.each(fn pid -> GenServer.cast(pid, {:replicate, %{username => device_id}}) end)
       {:noreply, %{username => device_id}}
     else
       members |> Enum.each(fn pid -> GenServer.cast(pid, {:replicate, Map.put(state, username, device_id)}) end)
+      {:noreply, Map.put(state, username, device_id)}
     end
   end
 

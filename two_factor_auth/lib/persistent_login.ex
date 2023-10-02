@@ -1,5 +1,6 @@
 defmodule PersistentLogin do
   use GenServer
+  require Logger
 
   # Interface
 
@@ -10,6 +11,7 @@ defmodule PersistentLogin do
   def login(username, password) do
     users = GenServer.call(__MODULE__, :users_list)
     stored_password = Map.get(users, username)
+    Logger.debug("#{inspect(users)}, #{username}, #{password}, #{stored_password}")
 
     case stored_password do
         ^password -> :ok
@@ -20,6 +22,7 @@ defmodule PersistentLogin do
 
   # Callbacks
   def init(_) do
+    Logger.debug("Init PersistentLogin")
     :ok = :syn.join(:persistent_login, :node, self())
     {:ok, %{}}
   end
