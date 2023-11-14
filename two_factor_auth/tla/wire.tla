@@ -43,7 +43,6 @@ variables username, password, device_id;
 begin
     Login:
         call CachedLogin(username, device_id);
-    CheckResult:
         if result = ":ok" then
             print("Logged in using cache");
         else
